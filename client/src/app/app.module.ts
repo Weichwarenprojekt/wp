@@ -1,12 +1,12 @@
-import { APP_INITIALIZER, Injector, NgModule } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
+import {APP_INITIALIZER, Injector, NgModule, PLATFORM_ID} from "@angular/core";
+import { BrowserModule, provideClientHydration } from "@angular/platform-browser";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
 import { CheckboxComponent } from "./components/checkbox/checkbox.component";
 import { FooterComponent } from "./components/footer/footer.component";
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
-import { HttpClient, HttpClientModule } from "@angular/common/http";
+import {HttpClient, HttpClientModule, provideHttpClient, withFetch} from "@angular/common/http";
 import { TranslateLoader, TranslateModule, TranslateService } from "@ngx-translate/core";
 import { HeaderComponent } from "./components/header/header.component";
 import { IntroCardComponent } from "./components/intro-card/intro-card.component";
@@ -20,7 +20,13 @@ import { FocusCardComponent } from "./pages/home/components/focus-card/focus-car
 import { IntroComponent } from "./pages/home/components/intro/intro.component";
 import { QuestionComponent } from "./pages/home/components/question/question.component";
 import { ShowcaseComponent } from "./pages/home/components/showcase/showcase.component";
-import { LOCATION_INITIALIZED, LocationStrategy, registerLocaleData } from "@angular/common";
+import {
+    isPlatformBrowser,
+    LOCATION_INITIALIZED,
+    LocationStrategy,
+    NgOptimizedImage,
+    registerLocaleData
+} from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { LoadingComponent } from "./components/loading/loading.component";
 import { MemberCardComponent } from "./pages/team/components/member-card/member-card.component";
@@ -71,6 +77,7 @@ registerLocaleData(localeDe);
         }),
         FormsModule,
         NgChartsModule,
+        NgOptimizedImage,
     ],
     providers: [
         {
@@ -79,6 +86,8 @@ registerLocaleData(localeDe);
             deps: [TranslateService, Injector],
             multi: true,
         },
+        provideClientHydration(),
+        provideHttpClient(withFetch())
     ],
     bootstrap: [AppComponent],
 })
@@ -102,7 +111,16 @@ export function AppInitializerFactory(translate: TranslateService, injector: Inj
             const locationInitialized = injector.get(LOCATION_INITIALIZED, Promise.resolve(null));
             locationInitialized.then(() => {
                 const availableLanguages = ["de", "en"];
-                let language = navigator.language.split("-")[0];
+
+                let language: string;
+
+                if (isPlatformBrowser(injector.get(PLATFORM_ID))) {
+                    language = navigator.language.split("-")[0];
+                } else {
+                    const serverLang = injector.get("SERVER_LANGUAGE") ?? "de"
+                    language = serverLang.split("-")[0] ?? "de"
+                }
+
                 if (!availableLanguages.includes(language)) language = "en";
                 translate.setDefaultLang("en");
                 translate.use(language).subscribe({
