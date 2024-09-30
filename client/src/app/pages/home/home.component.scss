@@ -59,13 +59,13 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    gap: 6rem;
+    gap: 10rem;
     flex-wrap: wrap;
-    padding: 2rem 0;
+    padding: 4rem 0;
 
     a {
         flex: 1 1 auto;
-        max-width: 25rem;
+        max-width: 20rem;
         min-width: 16rem;
     }
 
